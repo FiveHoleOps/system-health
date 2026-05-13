@@ -1,21 +1,33 @@
 # System Health
 
-A lightweight Bash script to monitor local system vitals and specific application statuses on Fedora.
+A lightweight, color-coded Bash script to monitor system vitals, security, and Citrix Workspace versions on Fedora.
 
 ## Features
-*   **CPU Temperature:** Monitors core temps via `lm_sensors`.
-*   **Battery Status:** Tracks state, percentage, and capacity via `upower`.
-*   **Network:** Checks status for specific interfaces (WiFi and Mullvad VPN) via `nmcli`.
-*   **Citrix Workspace Tracker:** Scrapes the Citrix download page to compare the latest available version against the locally installed RPM version.
+*   **CPU Temperature:** Multi-stage color scale (Green/Yellow/Orange/Red) using `lm_sensors`.
+*   **Battery Status:** Tracks state, percentage, and capacity.
+*   **Network:** Monitors `wlp2s0` and `mullvad` VPN interfaces.
+*   **Storage:** Quick view of `/` and `/home` usage.
+*   **Security:** Reports failed SSH login attempts from `journalctl`.
+*   **Citrix Tracker (Optional):** Scrapes Citrix downloads to compare your local RPM version with the latest online.
 
 ## Requirements
-Ensure the following packages are installed:
-*   `lm_sensors`
-*   `upower`
-*   `NetworkManager`
-*   `curl`
+*   `lm_sensors` (for CPU temps)
+*   `bc` (for decimal math)
+*   `upower` (for battery)
+*   `curl` (for Citrix scraping)
 
 ## Installation
 1. Clone the repository:
-   ```bash
-   git clone <your-repo-url> ~/scripts/system-health
+   git clone https://github.com/FiveHoleOps/system-health.git ~/scripts/system-health
+
+2. Make it executable:
+   chmod +x ~/scripts/system-health/health.sh
+
+3. Add an alias to your ~/.bashrc:
+   alias health='/home/ben/scripts/system-health/health.sh'
+
+## Usage
+| Command | Description |
+| :--- | :--- |
+| health | Displays full system dashboard (CPU, Battery, Network, Storage, Security). |
+| health -c | Displays only the Citrix Workspace update status. |
