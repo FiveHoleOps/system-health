@@ -10,12 +10,17 @@ ORANGE=$'\033[38;5;208m'
 CYAN=$'\033[0;36m'
 
 SHOW_CITRIX=false
+SHOW_GPU=false
+SHOW_MAIN=true
 
 for arg in "$@"; do
-  case $arg in -c|c) SHOW_CITRIX=true ;; esac
+  case $arg in 
+    -c|c) SHOW_CITRIX=true; SHOW_MAIN=false ;;
+    -g|g) SHOW_GPU=true; SHOW_MAIN=false ;;
+  esac
 done
 
-if [ "$SHOW_CITRIX" = false ]; then
+if [ "$SHOW_MAIN" = true ]; then
     echo -e "${CYAN}--- CPU Temp ---${RESET}"
     sensors | awk -v g="$GREEN" -v y="$YELLOW" -v o="$ORANGE" -v r="$RED" -v res="$RESET" '
     /Core/ {
@@ -28,15 +33,6 @@ if [ "$SHOW_CITRIX" = false ]; then
         else color = r
         print color $0 res
     }'
-
-    # GPU Monitoring - Optimized for Fedora 44 (igt-gpu-tools 2.4)
-    if command -v intel_gpu_top &> /dev/null; then
-        echo -e "\n${CYAN}--- GPU Performance ---${RESET}"
-        # Grabs the second-to-last sample to ensure the tool has "warmed up"
-        GPU_RAW=$(sudo timeout 3 intel_gpu_top -l 2>/dev/null | awk '!/Freq/ && NF>=9 {prev=curr; curr=$9} END {print int(prev)}')
-        GPU_LOAD=${GPU_RAW:-0}  
-        echo -e "Intel GPU Load: ${GREEN}${GPU_LOAD}%${RESET}"
-    fi
 
     echo -e "\n${CYAN}--- Battery ---${RESET}"
     BAT_PATH=$(upower -e | grep BAT | head -n 1)
@@ -72,4 +68,22 @@ if [ "$SHOW_CITRIX" = true ]; then
         elif [ "$LATEST_VER" -gt "$CURRENT_VER" ]; then echo -e "Citrix: ${RED}🚨 Update! ($LATEST_VER)${RESET}"
         else echo -e "Citrix: ${GREEN}Up to date ($CURRENT_RAW)${RESET}"; fi
     else echo -e "Citrix: ${RED}Not Installed${RESET}"; fi
+fi
+
+if [ "$SHOW_GPU" = true ]; then
+    echo -e "${CYAN}--- GPU & Video Info ---${RESET}"
+    
+    # Display Session Type (Wayland / X11)
+    echo -e "Display Server: ${GREEN}${XDG_SESSION_TYPE:-Unknown}${RESET}"
+    
+    # Hardware Info
+    echo "Graphics Hardware:"
+    lspci | grep -iE 'vga|3d|display' | awk -F': ' -v g="${GREEN}" -v r="${RESET}" '{print "  - " g $2 r}'
+
+    # GPU Monitoring - Optimized for Fedora 44 (igt-gpu-tools 2.4)
+    if command -v intel_gpu_top &> /dev/null; then
+        GPU_RAW=$(sudo timeout 3 intel_gpu_top -l 2>/dev/null | awk '!/Freq/ && NF>=9 {prev=curr; curr=$9} END {print int(prev)}')
+        GPU_LOAD=${GPU_RAW:-0}  
+        echo -e "Intel GPU Load: ${GREEN}${GPU_LOAD}%${RESET}"
+    fi
 fi
