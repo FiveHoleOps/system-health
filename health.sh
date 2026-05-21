@@ -38,6 +38,9 @@ if [ "$SHOW_MAIN" = true ]; then
     BAT_PATH=$(upower -e | grep BAT | head -n 1)
     [ -n "$BAT_PATH" ] && upower -i "$BAT_PATH" | grep -E "state|percentage|capacity"
 
+    echo -e "\n${CYAN}--- Memory ---${RESET}"
+    free -h | awk '/^Mem:/ {print "RAM:  " $3 " / " $2} /^Swap:/ {print "Swap: " $3 " / " $2}'
+
     echo -e "\n${CYAN}--- Network ---${RESET}"
     nmcli device status | grep -E "mullvad|wlp2s0"
 
@@ -77,8 +80,10 @@ if [ "$SHOW_GPU" = true ]; then
     echo -e "Display Server: ${GREEN}${XDG_SESSION_TYPE:-Unknown}${RESET}"
     
     # Hardware Info
-    echo "Graphics Hardware:"
-    lspci | grep -iE 'vga|3d|display' | awk -F': ' -v g="${GREEN}" -v r="${RESET}" '{print "  - " g $2 r}'
+    echo "Graphics Hardware & Drivers:"
+    lspci -k | grep -iEA2 'vga|3d|display' | awk -F': ' -v g="${GREEN}" -v r="${RESET}" '
+    /VGA|3D|Display/ { print "  - " g $2 r }
+    /Kernel driver in use/ { print "    Driver: " $2 }'
 
     # GPU Monitoring - Optimized for Fedora 44 (igt-gpu-tools 2.4)
     if command -v intel_gpu_top &> /dev/null; then
