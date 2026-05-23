@@ -12,6 +12,7 @@ CYAN=$'\033[0;36m'
 SHOW_CITRIX=false
 SHOW_GPU=false
 SHOW_SYNC=false
+SHOW_ERRORS=false
 SHOW_MAIN=true
 
 for arg in "$@"; do
@@ -19,6 +20,7 @@ for arg in "$@"; do
     -c|c) SHOW_CITRIX=true; SHOW_MAIN=false ;;
     -g|g) SHOW_GPU=true; SHOW_MAIN=false ;;
     -s|s) SHOW_SYNC=true; SHOW_MAIN=false ;;
+    -e|e) SHOW_ERRORS=true; SHOW_MAIN=false ;;
   esac
 done
 
@@ -115,4 +117,11 @@ if [ "$SHOW_SYNC" = true ]; then
 
     echo -e "\n${CYAN}Log Entries (Last 5 Minutes):${RESET}"
     journalctl --user -u gdrive-bisync.service --since "5 min ago" --no-pager 2>/dev/null
+fi
+
+if [ "$SHOW_ERRORS" = true ]; then
+    echo -e "${CYAN}--- System Warnings & Errors ---${RESET}"
+    # -p warning: Filters for warnings and more severe issues
+    # -b: Restricts output to the current boot to avoid scanning months of logs
+    journalctl -p warning -b --no-pager -n 30
 fi
