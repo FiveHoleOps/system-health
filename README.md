@@ -10,6 +10,7 @@ A comprehensive Bash utility designed for Fedora Linux to monitor hardware vital
 * **Network Status**: Monitors active interfaces and Mullvad VPN connectivity.
 * **Security**: Scans `journalctl` for failed SSH login attempts in the last 24 hours.
 * **Citrix Integration**: Optional flag to check for Citrix Workspace App updates.
+* **GDrive Sync**: Monitors the rclone bisync systemd timer and recent logs (requires `-s` flag).
 
 ## Dependencies
 The script requires: `lm_sensors`, `igt-gpu-tools`, `smartmontools`, `upower`, `nmcli`, `pciutils`.
@@ -22,3 +23,4 @@ Add this to `visudo`:
 `./health.sh` 
 `./health.sh c` (Citrix Status)
 `./health.sh g` (GPU & Video Info)
+`./health.sh s` (GDrive Sync Status)

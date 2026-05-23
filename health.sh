@@ -11,12 +11,14 @@ CYAN=$'\033[0;36m'
 
 SHOW_CITRIX=false
 SHOW_GPU=false
+SHOW_SYNC=false
 SHOW_MAIN=true
 
 for arg in "$@"; do
   case $arg in 
     -c|c) SHOW_CITRIX=true; SHOW_MAIN=false ;;
     -g|g) SHOW_GPU=true; SHOW_MAIN=false ;;
+    -s|s) SHOW_SYNC=true; SHOW_MAIN=false ;;
   esac
 done
 
@@ -91,4 +93,26 @@ if [ "$SHOW_GPU" = true ]; then
         GPU_LOAD=${GPU_RAW:-0}  
         echo -e "Intel GPU Load: ${GREEN}${GPU_LOAD}%${RESET}"
     fi
+fi
+
+if [ "$SHOW_SYNC" = true ]; then
+    echo -e "${CYAN}--- GDrive Sync Status ---${RESET}"
+    
+    echo -n "Timer Status: "
+    if systemctl --user is-active --quiet gdrive-bisync.timer 2>/dev/null; then
+        echo -e "${GREEN}Active${RESET}"
+    else
+        echo -e "${RED}Inactive/Stopped${RESET}"
+    fi
+
+    echo -n "Service Result: "
+    SERVICE_RESULT=$(systemctl --user show gdrive-bisync.service --property=Result --value 2>/dev/null)
+    if [ "$SERVICE_RESULT" = "success" ]; then
+        echo -e "${GREEN}Success${RESET}"
+    else
+        echo -e "${YELLOW}${SERVICE_RESULT:-Unknown}${RESET}"
+    fi
+
+    echo -e "\n${CYAN}Log Entries (Last 5 Minutes):${RESET}"
+    journalctl --user -u gdrive-bisync.service --since "5 min ago" --no-pager 2>/dev/null
 fi
