@@ -122,7 +122,9 @@ if [ "$SHOW_SYNC" = true ]; then
         gsub(/error|failed|fatal/, r "&" res)
         gsub(/warning/, o "&" res)
         gsub(/notice/, y "&" res)
-        gsub(/success|synced/, g "&" res)
+        if (!gsub(/all sync operations completed successfully!/, g "&" res)) {
+            gsub(/success|synced/, g "&" res)
+        }
         print $0
     }'
 fi
