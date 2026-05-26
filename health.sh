@@ -116,7 +116,15 @@ if [ "$SHOW_SYNC" = true ]; then
     fi
 
     echo -e "\n${CYAN}Log Entries (Last 5 Minutes):${RESET}"
-    journalctl --user -u gdrive-bisync.service --since "5 min ago" --no-pager 2>/dev/null
+    journalctl --user -u gdrive-bisync.service --since "5 min ago" --no-pager 2>/dev/null | awk -v r="$RED" -v o="$ORANGE" -v y="$YELLOW" -v g="$GREEN" -v res="$RESET" '
+    BEGIN { IGNORECASE = 1 }
+    {
+        gsub(/error|failed|fatal/, r "&" res)
+        gsub(/warning/, o "&" res)
+        gsub(/notice/, y "&" res)
+        gsub(/success|synced/, g "&" res)
+        print $0
+    }'
 fi
 
 if [ "$SHOW_ERRORS" = true ]; then
