@@ -5,6 +5,7 @@ A comprehensive Bash utility designed for Fedora Linux to monitor hardware vital
 ## Features
 * **CPU Monitoring**: Real-time core temperatures with color-coded alerts.
 * **Memory**: Displays current RAM and Swap utilization.
+* **Battery Health**: Detailed battery stats including power profile, drain rate, and capacity (requires `-b` flag).
 * **GPU Performance**: Intel GPU load monitoring and kernel driver details (requires `-g` flag).
 * **Storage Health**: Tracks NVMe/SSD wear levels and partition usage.
 * **Network Status**: Monitors active interfaces and Mullvad VPN connectivity.
@@ -25,4 +26,5 @@ Add this to `visudo`:
 `./health.sh c` (Citrix Status)
 `./health.sh g` (GPU & Video Info)
 `./health.sh s` (GDrive Sync Status)
+`./health.sh b` (Battery Health & Power Info)
 `./health.sh e` (System Warnings & Errors)

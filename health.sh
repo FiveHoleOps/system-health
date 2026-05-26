@@ -13,6 +13,7 @@ SHOW_CITRIX=false
 SHOW_GPU=false
 SHOW_SYNC=false
 SHOW_ERRORS=false
+SHOW_BATTERY=false
 SHOW_MAIN=true
 
 for arg in "$@"; do
@@ -21,6 +22,7 @@ for arg in "$@"; do
     -g|g) SHOW_GPU=true; SHOW_MAIN=false ;;
     -s|s) SHOW_SYNC=true; SHOW_MAIN=false ;;
     -e|e) SHOW_ERRORS=true; SHOW_MAIN=false ;;
+    -b|b) SHOW_BATTERY=true; SHOW_MAIN=false ;;
   esac
 done
 
@@ -40,7 +42,7 @@ if [ "$SHOW_MAIN" = true ]; then
 
     echo -e "\n${CYAN}--- Battery ---${RESET}"
     BAT_PATH=$(upower -e | grep BAT | head -n 1)
-    [ -n "$BAT_PATH" ] && upower -i "$BAT_PATH" | grep -E "state|percentage|capacity"
+    [ -n "$BAT_PATH" ] && upower -i "$BAT_PATH" | grep -E "state:|percentage:|capacity:"
 
     echo -e "\n${CYAN}--- Memory ---${RESET}"
     free -h | awk '/^Mem:/ {print "RAM:  " $3 " / " $2} /^Swap:/ {print "Swap: " $3 " / " $2}'
@@ -127,6 +129,52 @@ if [ "$SHOW_SYNC" = true ]; then
         }
         print $0
     }'
+fi
+
+if [ "$SHOW_BATTERY" = true ]; then
+    echo -e "${CYAN}--- Battery Health & Power ---${RESET}"
+    
+    if command -v powerprofilesctl &> /dev/null; then
+        PROFILE=$(powerprofilesctl get 2>/dev/null)
+        echo -e "Power Profile: ${GREEN}${PROFILE}${RESET}"
+    fi
+
+    # Add CPU Package Power (Intel RAPL) as a live power metric when plugged in
+    CPU_POWER=$(sensors 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i == "W"){printf "%.1f W\n", $(i-1); exit}}')
+    if [ -n "$CPU_POWER" ]; then
+        echo -e "CPU Package Power: ${YELLOW}${CPU_POWER}${RESET}"
+    fi
+
+    # Find all batteries (Internal laptop battery + Wireless Mice/Keyboards)
+    BAT_PATHS=$(upower -e | grep -i 'battery_')
+    if [ -n "$BAT_PATHS" ]; then
+        for BAT in $BAT_PATHS; do
+            MODEL=$(upower -i "$BAT" | awk -F': +' '/model:/ {print $2}')
+            [ -z "$MODEL" ] && MODEL="System Battery"
+            echo -e "Device: ${GREEN}${MODEL}${RESET}"
+            
+            upower -i "$BAT" | awk -F': +' -v g="${GREEN}" -v y="${YELLOW}" -v r="${RED}" -v res="${RESET}" '
+            $1 ~ /state$/ { 
+                state = $2
+                gsub(/^[ \t\r\n]+|[ \t\r\n]+$/, "", state)
+                print "  State: " g state res 
+            }
+            $1 ~ /percentage$/ { print "  Current Charge: " g sprintf("%.1f%%", $2 + 0) res }
+            $1 ~ /energy-rate$/ { 
+                if (state == "discharging") label = "  Battery Drain: "
+                else if (state == "charging") label = "  Charge Rate: "
+                else label = "  Trickle Charge: "
+                print label y sprintf("%.1f W", $2 + 0) res 
+            }
+            $1 ~ /capacity$/ {
+                cap = $2 + 0
+                if (cap < 70) color = r; else if (cap < 85) color = y; else color = g
+                print "  Life Used (Capacity): " color sprintf("%.1f%%", cap) res
+            }'
+        done
+    else
+        echo -e "${RED}No batteries found.${RESET}"
+    fi
 fi
 
 if [ "$SHOW_ERRORS" = true ]; then
