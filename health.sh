@@ -14,6 +14,7 @@ SHOW_GPU=false
 SHOW_SYNC=false
 SHOW_ERRORS=false
 SHOW_BATTERY=false
+SHOW_UPTIME=false
 SHOW_MAIN=true
 
 for arg in "$@"; do
@@ -23,6 +24,7 @@ for arg in "$@"; do
     -s|s) SHOW_SYNC=true; SHOW_MAIN=false ;;
     -e|e) SHOW_ERRORS=true; SHOW_MAIN=false ;;
     -b|b) SHOW_BATTERY=true; SHOW_MAIN=false ;;
+    -u|u) SHOW_UPTIME=true; SHOW_MAIN=false ;;
   esac
 done
 
@@ -182,4 +184,11 @@ if [ "$SHOW_ERRORS" = true ]; then
     # -p warning: Filters for warnings and more severe issues
     # -b: Restricts output to the current boot to avoid scanning months of logs
     journalctl -p warning -b --no-pager -n 30
+fi
+
+if [ "$SHOW_UPTIME" = true ]; then
+    echo -e "${CYAN}--- System Uptime ---${RESET}"
+    echo -e "Uptime: ${GREEN}$(uptime -p | sed 's/up //')${RESET}"
+    read -r one five fifteen rest < /proc/loadavg
+    echo -e "Load Average (1m/5m/15m): ${YELLOW}${one} / ${five} / ${fifteen}${RESET}"
 fi

@@ -13,6 +13,7 @@ A comprehensive Bash utility designed for Fedora Linux to monitor hardware vital
 * **Citrix Integration**: Optional flag to check for Citrix Workspace App updates.
 * **GDrive Sync**: Monitors the rclone bisync systemd timer and recent logs (requires `-s` flag).
 * **System Errors**: Scans journals for warnings and errors on the current boot (requires `-e` flag).
+* **Uptime**: Displays system uptime and load average (requires `-u` flag).
 
 ## Dependencies
 The script requires: `lm_sensors`, `igt-gpu-tools`, `smartmontools`, `upower`, `nmcli`, `pciutils`.
@@ -28,3 +29,4 @@ Add this to `visudo`:
 `./health.sh s` (GDrive Sync Status)
 `./health.sh b` (Battery Health & Power Info)
 `./health.sh e` (System Warnings & Errors)
+`./health.sh u` (System Uptime)
